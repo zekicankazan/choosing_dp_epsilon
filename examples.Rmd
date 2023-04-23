@@ -1,0 +1,82 @@
+---
+title: "Examples"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+find_eps <- function(r_star, p_grid = seq(1e-3, 1, 1e-3), 
+                     q_grid = seq(1e-3, 1, 1e-3)){
+  min_eps <- Inf
+  for(p in p_grid){
+    for(q in q_grid){
+      if(q == 1){ 
+        if(p > 1/r_star(p,1)){ next }
+        eps <- log((1-p)/(1/r_star(p,1) - p)) 
+        }
+      else{ 
+        if(4*p*(1-q)*(1/r_star(p,q) - p*q) < 0){ next }
+        eps <- log(2*p*(1-q)/(sqrt((1-p)^2 + 4*p*(1-q)*(1/r_star(p,q) - p*q)) - (1-p)))
+        }
+      if(min_eps > eps){ min_eps <- eps }
+    }
+  }
+  return(min_eps)
+}
+```
+
+We begin by demonstrating the `find_eps` function on Example 1 from Section 3.2. In the case where $\tilde{r} = 3$, we define the function `r_star` as follows and plug the function into `find_eps`.
+
+```{r}
+q_tilde <- 1; r_tilde <- 3; a_tilde <- 0.25
+
+r_star <- function(p,q){
+  if(q != q_tilde){
+    return(Inf)
+  }
+  else{
+    return(max(a_tilde/(p*q_tilde), r_tilde))
+  }
+}
+
+find_eps(r_star)
+```
+
+We compare to the closed form expression derived in the text.
+
+```{r}
+log((r_tilde - a_tilde)/(1 - a_tilde))
+```
+
+We note that the closed form expression differs very slightly from the value produced by `find_eps`. We can improve the estimate by using a finer grid, as demonstrated below. (Since when $q_i \neq \tilde{q}$, no bound is enforced, we can conduct a faster search by limiting the grid to only consider $q_i = \tilde{q}$.)
+
+```{r}
+find_eps(r_star, p_grid = seq(1e-6, 1, 1e-6), q_grid = q_tilde)
+```
+
+We see that the result produced almost exactly matches the closed form expression.
+
+We also demonstrate the `find_eps` function on Example 2 from Section 3.2. In the case where $\tilde{a} = 0.15$, we define the function `r_star` as follows and plug the function into `find_eps`.
+
+```{r}
+p_tilde <- 0.05; r_tilde <- 3; a_tilde <- 0.15
+
+r_star <- function(p,q){
+  if(p != p_tilde){
+    return(Inf)
+  }
+  else{
+    return(max(a_tilde/(p*q), r_tilde))
+  }
+}
+
+find_eps(r_star)
+```
+
+We find that the result exactly matches the closed form expression derived in the text.
+
+```{r}
+log((a_tilde*(1-p_tilde))/(p_tilde*(1-a_tilde)))
+```
+
