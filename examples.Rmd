@@ -8,25 +8,27 @@ knitr::opts_chunk$set(echo = TRUE)
 
 find_eps <- function(r_star, p_grid = seq(1e-3, 1, 1e-3), 
                      q_grid = seq(1e-3, 1, 1e-3)){
+  # Function to search over a grid to find the minimal epsilon satisfying
+  # the risk profile r_star
   min_eps <- Inf
   for(p in p_grid){
     for(q in q_grid){
       if(q == 1){ 
         if(p > 1/r_star(p,1)){ next }
         eps <- log((1-p)/(1/r_star(p,1) - p)) 
-        }
+      }
       else{ 
         if(4*p*(1-q)*(1/r_star(p,q) - p*q) < 0){ next }
         eps <- log(2*p*(1-q)/(sqrt((1-p)^2 + 4*p*(1-q)*(1/r_star(p,q) - p*q)) - (1-p)))
-        }
-      if(min_eps > eps){ min_eps <- eps }
+      }
+      if(min_eps > eps){ min_eps <- eps; min_p <- p; min_q <- q }
     }
   }
-  return(min_eps)
+  return(list(eps = min_eps, p = min_p, q = min_q))
 }
 ```
 
-We begin by demonstrating the `find_eps` function on Example 1 from Section 3.2. In the case where $\tilde{r} = 3$, we define the function `r_star` as follows and plug the function into `find_eps`.
+We begin by demonstrating the `find_eps` function on Example 1 from Section 4 and Appendix C.1 In the case where $\tilde{r} = 3$, we define the function `r_star` as follows and plug the function into `find_eps`.
 
 ```{r}
 q_tilde <- 1; r_tilde <- 3; a_tilde <- 0.25
@@ -57,7 +59,7 @@ find_eps(r_star, p_grid = seq(1e-6, 1, 1e-6), q_grid = q_tilde)
 
 We see that the result produced almost exactly matches the closed form expression.
 
-We also demonstrate the `find_eps` function on Example 2 from Section 3.2. In the case where $\tilde{a} = 0.15$, we define the function `r_star` as follows and plug the function into `find_eps`.
+We also demonstrate the `find_eps` function on Example 2 from Section 4 and Appendix C.2. In the case where $\tilde{a} = 0.15$, we define the function `r_star` as follows and plug the function into `find_eps`.
 
 ```{r}
 p_tilde <- 0.05; r_tilde <- 3; a_tilde <- 0.15
